@@ -1,0 +1,28 @@
+{
+  "name": "vue3-stydy",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite --mode dev",
+    "pro": "vite --mode pro",
+    "build:dev": "vite build --mode dev",
+    "build:pro": "vite build --mode pro"
+  },
+  "dependencies": {
+    "@types/node": "^18.7.18",
+    "awe-dnd": "^0.3.4",
+    "axios": "^0.27.2",
+    "element-plus": "^2.2.17",
+    "qs": "^6.11.0",
+    "sass": "^1.55.0",
+    "sass-loader": "^13.0.2",
+    "vite": "^3.1.3",
+    "vue": "^3.0.4",
+    "vue-esign": "^1.1.4",
+    "vue-router": "^4.1.5",
+    "vuedraggable": "^4.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^3.1.0",
+    "@vue/compiler-sfc": "^3.0.4"
+  }
+}

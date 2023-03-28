@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext", //解决import.meta.env 报红
+    "strict": false, //忽略报错
+    "downlevelIteration": true, //允许以“ ES5”或“ ES3”为目标时，在“ for-of”，传播、解构中为可迭代项提供支持。
+    "baseUrl": ".", //设置ts忽略@报错
+    "paths": {
+      "@/*": ["src/*"],
+    },
+    "types": ["vite/client"],
+    "moduleResolution": "Node"
+  }
+}

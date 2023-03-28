@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vue3学习</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <script src="https://unpkg.com/vue@next"></script>
+    <style>
+        .d {
+            width: 200px;
+            height: 80px;
+            border: 1px solid red;
+            margin-right: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-evenly;
+        }
+
+        .k {
+            width: 80%;
+            height: 80%;
+            background-color: #000;
+        }
+
+        ul,
+        li {
+            padding: 0;
+            list-style: none;
+        }
+
+        .li {
+            padding: 0 20px;
+            background-color: #f8f8f8;
+            line-height: 30px;
+            color: #000;
+            border-bottom: 1px solid;
+            cursor: move;
+            transition: all .2s;
+            font-size: 12px;
+            width: 100%;
+            height: 30px;
+        }
+
+        .flip-list-move {
+            transition: transform 0.8s ease;
+            background: yellow;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>拖拽练习</h1>
+    <div id="app">
+        <div class="d" @drop="drop($event)" @dragover="allowDrop($event)">
+            <div class="k" id="a" draggable="true" @dragstart="dragstart($event)">
+            </div>
+        </div>
+        <div class="d" @drop="drop($event)" @dragover="allowDrop($event)"></div>
+
+        <ul>
+            <li v-for="(item,to) in arr" :key="to" class="li" draggable="true" @dragstart="t($event,to)"
+                @drop="f($event,to)" @dragover="y($event,to)" @dragend="end($event,to)"><span
+                    v-show="item.id!==''">{{item.id}}.
+                    {{item.data}}</span></li>
+        </ul>
+    </div>
+    <pre>
+	draggable="true" //运许拖拽
+	@dragstart="t($event,to)" //开始拖拽 运行一次 可以设置
+	@drop="f($event,to)"  //放开元素
+	@dragover="y($event,to)" //有拖拽元素在头上时运行，一直运行到拖拽元素离开
+	@dragend="end($event,to)"//拖拽结束
+</pre>
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    count: "aaa",
+                    html: `<p>p</p>`,
+                    isButtonDisabled: true,
+                    arr: [
+                        { id: 0, data: "这是第一段" },
+                        { id: 1, data: "这是第二段" },
+                        { id: 2, data: "这是第三段" },
+                        { id: 3, data: "啊啊啊啊啊" },
+                        { id: 4, data: "哈哈哈哈" }
+                    ], to: null, data: null
+                }
+            },
+            methods: {
+                t(e, to) {
+                    this.to = to
+                    this.data = this.arr[to]
+                },
+                f(e, to) {
+                    e.preventDefault();
+                    let from = this.to,
+                        data = this.data
+                    this.arr[from] = data
+                },
+                y(e, to) {
+                    e.preventDefault();
+                    let from = this.to,
+                        arr = this.arr, f_arr_item = arr[to]
+                    if (from === to) {//如果是当前元素上移动直接结束
+                        return
+                    }
+                    if (from - to <= 1 && from - to >= -1 && from !== to) {
+                        this.arr[to] = { id: "", data: "" }
+                        this.arr[from] = f_arr_item
+                        this.arr[to] = { id: "", data: "" }
+                        this.to = to
+                    } else {
+                        if (from - to < 0) {
+                            for (let a = from; a < to; a++) {
+                                arr[a] = arr[a + 1]
+                            }
+                            this.to = to
+                            this.arr[to] = { id: "", data: "" }
+                        } else {
+                            for (let a = from; a > to; a--) {
+                                arr[a] = arr[a - 1]
+                            }
+                            this.to = to
+                            this.arr[to] = { id: "", data: "" }
+                        }
+                    }
+                    // 
+                },
+                end(e) {
+                    this.arr[this.to] = this.data
+                },
+
+
+                ttt(e, to) {
+                    console.log("ttt", e)
+                    e.preventDefault();//阻止其他事件
+                    // 如果这个元素的位置内只有一个手指的话
+                    if (e.targetTouches.length == 1) {
+                        var touch = e.targetTouches[0];  // 把元素放在手指所在的位置
+                        e.target.style.left = touch.pageX + 'px';
+                        e.target.style.top = touch.pageY + 'px';
+                    }
+                },
+                tm(e, to) {
+                    console.log(e, to)
+                },
+                tend(e, to) {
+                    console.log("tend", e.target, to)
+                },
+                dragstart(e) {//元素被拖动
+                    console.log("dragstart")
+                    e.dataTransfer.setData("text", e.target.id);
+                },
+                drop(e) {//元素被放下
+                    e.preventDefault()
+                    this.$nextTick(() => {
+                        e.target.appendChild(document.getElementById(e.dataTransfer.getData("text")));
+                    })
+                },
+                allowDrop(e) {//dragover 元素被拖动到元素上上一直触发
+                    // console.log("allowDrop",e)
+                    e.preventDefault();
+                }
+            },
+            computed: {
+            },
+            mounted() {
+                let arr = JSON.parse(Cookies.get("arr"))
+                console.log(arr)
+                this.arr = arr
+            },
+            beforeDestroy() {
+                Cookies.set("arr", JSON.stringify(this.arr), "10000")
+            },
+
+        })
+        const Cookies = {
+            set: (cname, cvalue, exdays) => {
+                var d = new Date();
+                d.setTime(d.getTime() + exdays);
+                var expires = "expires=" + d.toGMTString();
+                document.cookie = cname + "=" + cvalue + "; " + expires;
+            },
+            get: (cname) => {
+                var name = cname + "=";
+                var ca = document.cookie.split(';');
+                for (var i = 0; i < ca.length; i++) {
+                    var c = ca[i].trim();
+                    if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
+                }
+                return "";
+            }
+        }
+        const vm = app.mount('#app')
+        window.onunload = function (e) {
+            Cookies.set("arr", JSON.stringify(vm.arr), "10000")
+        }
+
+		// console.log(vm,app) // => 4
+    </script>
+</body>
+
+</html>
