@@ -35,6 +35,10 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import("../views/teleport/index.vue")
     },
     {
+        path: "/model",//Teleport 内置组件
+        component: () => import("@/views/model-computed/index.vue")
+    },
+    {
         path: "/404",
         component: () => import("../views/404.vue")
     },
