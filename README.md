@@ -1,4 +1,4 @@
-# 那拉提大数据
+# vue3-study
 
 ## Project setup
 ```
