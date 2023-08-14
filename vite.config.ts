@@ -6,7 +6,7 @@ const config: UserConfig = {
     plugins: [vue()],
     server: {
         host: '0.0.0.0',
-        open: true,//启动项目自动弹出浏览器
+        open: false,//启动项目自动弹出浏览器
         port: 4000,//启动端口
         proxy: {
             '/api': {
