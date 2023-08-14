@@ -10,7 +10,7 @@ yarn
 yarn dev
 ```
 
-### Compiles and minifies for production
+### Compiles and build for production
 ```
 yarn build:pro
 ```
