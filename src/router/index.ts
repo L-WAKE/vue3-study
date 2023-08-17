@@ -8,12 +8,12 @@ const routes: Array<RouteRecordRaw> = [
     },
     {
         path: "/test1",
-        name: 'test1',
+        name: '请求、监听、计算属性',
         component: () => import("../views/test1/index.vue")
     },
     {
         path: "/test2",
-        name: 'test2',
+        name: '父子组件传参',
         component: () => import("../views/test2/index.vue")
     },
     {
