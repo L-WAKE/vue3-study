@@ -1,167 +1,71 @@
-// http.ts
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
-import qs from "qs"
+import axios from 'axios';
+import qs from 'qs';
 
-const showStatus = (status: number) => {
-    let message = ''
-    switch (status) {
-        case 400:
-            message = '请求错误(400)'
-            break
-        case 401:
-            message = '未授权，请重新登录(401)'
-            break
-        case 403:
-            message = '拒绝访问(403)'
-            break
-        case 404:
-            message = '请求出错(404)'
-            break
-        case 408:
-            message = '请求超时(408)'
-            break
-        case 500:
-            message = '服务器错误(500)'
-            break
-        case 501:
-            message = '服务未实现(501)'
-            break
-        case 502:
-            message = '网络错误(502)'
-            break
-        case 503:
-            message = '服务不可用(503)'
-            break
-        case 504:
-            message = '网络超时(504)'
-            break
-        case 505:
-            message = 'HTTP版本不受支持(505)'
-            break
-        default:
-            message = `连接出错(${status})!`
+declare module 'axios' {
+    export interface AxiosRequestConfig {
+        other?: any;
     }
-    return `${message}，请检查网络或联系管理员！`
 }
+const http = axios.create({
+    baseURL: import.meta.env.VITE_APP_BASE_URL,
+    headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+    withCredentials: true
+});
 
-const service = axios.create({
-    // 联调
-    // baseURL: process.env.NODE_ENV === 'production' ? `/` : '/api',
-    baseURL: "/",
-    headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
+// 请求对象  
+http.interceptors.request.use(
+    config => {
+        let token: string = localStorage.getItem('token') || '';
+        if (config.other == 'down') {//下载
+            config.data = true
+            config.responseType = 'blob';
+            config.headers['Content-Type'] = 'application/octet-stream';
+            return config
+        }
+        if (config.other == 'upload') {//上传
+            config.headers['Content-Type'] = 'multipart/form-data;boundary=' + new Date().getTime();
+            return config
+        }
+        if (token != '') {
+            config.headers['token'] = token;
+        }
+        if (config.other == 1) {
+            config.data && (config.data = qs.stringify(config.data)) // 转为formdata数据格式
+            config.headers['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8';
+        } else if (config.other != 'import') {
+            config.data && (config.data = qs.parse(config.data))
+        }
+        return config;
     },
-    // 是否跨站点访问控制请求
-    withCredentials: true,
-    timeout: 30000,
-    transformRequest: [(data) => {
-        data = JSON.stringify(data)
-        return data
-    }],
-    validateStatus() {
-        // 使用async-await，处理reject情况较为繁琐，所以全部返回resolve，在业务代码中处理异常
-        return true
+    error => {
+        return Promise.reject(error);
+    }
+);
+
+// 响应对象
+http.interceptors.response.use(
+    response => {
+        if (response.status != 200) {
+            console.log(response.data.msg || '请求异常')
+            return Promise.reject(new Error(response.data.msg || '请求异常'));
+        }
+        return response.data || response;
     },
-    transformResponse: [(data) => {
-        if (typeof data === 'string' && data.startsWith('{')) {
-            data = JSON.parse(data)
-        }
-        return data
-    }]
-
-})
-
-// 声明一个 Map 用于存储每个请求的标识 和 取消函数
-const pending = new Map()
-/**
- * 添加请求
- * @param {Object} config 
- */
-const addPending = (config: AxiosRequestConfig) => {
-    const url = [
-        config.method,
-        config.url,
-        qs.stringify(config.params),
-        qs.stringify(config.data)
-    ].join('&')
-    config.cancelToken = config.cancelToken || new axios.CancelToken(cancel => {
-        if (!pending.has(url)) { // 如果 pending 中不存在当前请求，则添加进去
-            pending.set(url, cancel)
-        }
-    })
-}
-/**
- * 移除请求
- * @param {Object} config 
- */
-const removePending = (config: AxiosRequestConfig) => {
-    const url = [
-        config.method,
-        config.url,
-        qs.stringify(config.params),
-        qs.stringify(config.data)
-    ].join('&')
-    if (pending.has(url)) { // 如果在 pending 中存在当前请求标识，需要取消当前请求，并且移除
-        const cancel = pending.get(url)
-        cancel(url)
-        pending.delete(url)
+    error => {
+        console.log(error.message || '请求异常')
+        return Promise.reject(error);
     }
-}
+);
 
-/**
- * 清空 pending 中的请求（在路由跳转时调用）
- */
-export const clearPending = () => {
-    for (const [url, cancel] of pending) {
-        cancel(url)
-    }
-    pending.clear()
-}
-
-// 请求拦截器
-service.interceptors.request.use((config: AxiosRequestConfig) => {
-    removePending(config) // 在请求开始前，对之前的请求做检查取消操作
-    addPending(config) // 将当前请求添加到 pending 中
-    let token = localStorage.getItem('token')
-    if (token) {
-        config.headers.Authorization = `${token}`;
-    }
-    return config
-}, (error) => {
-    // 错误抛到业务代码
-    error.data = {}
-    error.data.msg = '服务器异常，请联系管理员！'
-    console.error(error.data.msg)
-    return Promise.resolve(error)
-})
-
-// 响应拦截器
-service.interceptors.response.use((response: AxiosResponse) => {
-    removePending(response) // 在请求结束后，移除本次请求
-    const status = response.status
-    let msg = ''
-    if (status < 200 || status >= 300) {
-        // 处理http错误，抛到业务代码
-        msg = showStatus(status)
-        if (typeof response.data === 'string') {
-            response.data = { msg }
-        } else {
-            response.data.msg = msg
-        }
-    }
-
-    return response
-}, (error) => {
-    if (axios.isCancel(error)) {
-        console.error('repeated request: ' + error.message)
-    } else {
-        // handle error code
-        // 错误抛到业务代码
-        error.data = {}
-        error.data.msg = '请求超时或服务器异常，请检查网络或联系管理员！'
-        console.error(error.data.msg)
-    }
-    return Promise.reject(error)
-})
-
-export default service
+export const Post = (url: string, data = {}, config = null) => {
+    return http.post(url, data, { other: config });
+};
+export const Get = (url: string, params = {}, config = null) => {
+    return http.get(url, { params, other: config });
+};
+export const Delete = (url: string, data = {}, config = null) => {
+    return http.delete(url, { data, other: config });
+};
+export const Put = (url: string, data = {}, config = null) => {
+    return http.put(url, data, { other: config });
+};

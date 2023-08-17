@@ -1,5 +1,4 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
-import { clearPending } from "../utils/request"
 
 const routes: Array<RouteRecordRaw> = [
     {
@@ -63,10 +62,5 @@ const router = createRouter({
     routes,
 })
 
-//在跳转路由之前，先清除所有的请求
-router.beforeEach((to, from, next) => {
-    clearPending()
-    next()
-})
 
 export default router

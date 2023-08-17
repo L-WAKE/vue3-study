@@ -1,20 +1,11 @@
 <template>
   <!-- 主要讲监听器、计算属性 watch, watchEffect, computed-->
 
-  <input
-    type="text"
-    v-model="state.Account"
-    placeholder="请输入账号"
-    name="username"
-  />
-  <input
-    type="text"
-    v-model="state.Password"
-    placeholder="请输入密码"
-    name="password"
-  />
-  <button @click.prevent="handleRegister()">登录</button>
+  <input type="text" v-model="state.Account" placeholder="请输入账号" name="username" />
+  <input type="text" v-model="state.Password" placeholder="请输入密码" name="password" />
+  <button @click.prevent="loginInfo()">登录</button>
   <br />
+  <button @click.prevent="getuserinfo()">getuserinfo</button>
   <p>--------------------------------------------------------</p>
   <br />
   <span>我是{{ msg }}</span>
@@ -33,7 +24,7 @@
 </template>
 <style scoped></style>
 <script lang="ts" setup>
-import { UserService } from "../../api/user";
+import { login, getUserInfo } from "@/api/commonApi";
 import { reactive, ref, watch, watchEffect, computed } from "vue";
 
 interface CompuName {
@@ -112,12 +103,17 @@ const state = reactive({
   Account: "", //账户
   Password: "", //密码
 });
-const handleRegister = async () => {
+const loginInfo = async () => {
   const loginParams = {
     username: state.Account,
     password: state.Password,
   };
-  const res = await UserService.login(loginParams);
+  const res = await login(loginParams);
   console.log("res", res);
 };
+const getuserinfo = async () => {
+  const res = await getUserInfo();
+  console.log("resgetuserinfo", res);
+};
 </script>
+../../api/commonApi

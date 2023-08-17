@@ -16,13 +16,15 @@ export default ({ mode }) => {
                 },
             },
         },
+        //项目部署在主域名的子文件使用,例如http://localhost:3000/myvite/。不填默认就是/
+        // base: env.VITE_APP_BASE_URL || '/',
         server: {
             host: '0.0.0.0',
             open: false,//启动项目自动弹出浏览器
             port: 4000,//启动端口
             proxy: {
                 '/api': {
-                    target: 'https://928a6c57-d243-4dce-a4ee-388405267fa5.mock.pstmn.io',	//实际请求地址
+                    target: env.VITE_BASE_API,	//实际请求地址
                     changeOrigin: true,
                     rewrite: (path) => path.replace(/^\/api/, '')
                 },
