@@ -15,7 +15,7 @@ const http = axios.create({
 // 请求对象  
 http.interceptors.request.use(
     config => {
-        let token: string = localStorage.getItem('token') || '';
+        let token: string = localStorage.getItem('token') || 'asasas';
         if (config.other == 'down') {//下载
             config.data = true
             config.responseType = 'blob';
